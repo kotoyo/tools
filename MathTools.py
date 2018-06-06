@@ -85,18 +85,20 @@ def solid_angle(mincoszen, maxcoszen, minazi = 0, maxazi = 2*m.pi) :
     return (maxcoszen - mincoszen) * (maxazi - minazi)
 
 #---------------------------------------------------
-def energy_integral(minelog, maxelog, gamma) :
+def energy_integral(mine, maxe, gamma) :
+    # make sure it's float
 
-    mine = 10**minelog 
-    maxe = 10**maxelog 
-    intg = 0
+    mine = float(mine)
+    maxe = float(maxe)
+    gamma = float(gamma)
 
-    if (gamma == 1) :
+    intg = 0.
+    if (gamma == 1.) :
         # if E^-1 then integral over Emin and Emax is
         intg = m.log(maxe/mine);
     else :
         # if not E^-1 then integral over Emin and Emax is
-        intg = (maxe**(1-gamma) - mine**(1-gamma))/(1-gamma)
+        intg = (maxe**(1.-gamma) - mine**(1.-gamma))/(1.-gamma)
 
     return intg
     

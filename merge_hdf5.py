@@ -2,149 +2,202 @@
 import tables
 import numpy as np
 
+#--------------------------------------------------
+import glob
+def glob_filenames(tablelist) :
+    """
+    Function to generate filename list.
 
-def load_tables(filelist) :
+    Parameters
+    ----------
+    tablelist : str
+        Could be a name of list file that contains 
+        list of h5 files, or a name of h5 file 
+        with wildcard
+
+    Returns
+    ----------
+    filenames : list
+        list of string(name of h5 files)
     """
-    loading all tables listed in filelist
-    """
-    tablelist = []
-    if ".h5" in filelist or ".hdf5" in filelist:
+
+    if type(tablelist) != str :
+        print("glob_filenames takes string argument.")
+        sys.exit(0)
+
+    filenames = []
+    if "*" in tablelist :
         '''
-        this is not a list, but .h5 file name.
-        just load the table.
+        tablelist contains wildcard. glob it.
         '''
-        myt = tables.open_file(filelist)
-        tablelist.append(myt)
+        filenames = glob.glob(tablelist)
+
+    elif ".h5" in tablelist or ".hdf5" in tablelist:
+        '''
+        tablelist is a name of an hbook file.
+        '''
+        filenames.append(tablelist)
 
     else :
-        for i, fname in enumerate(open(filelist)) :
+        '''
+        tablelist is a name of a listfile that
+        contains names of hbook file.
+        '''
+        flist = open(tablelist)
+        for i, fname in enumerate(flist):
             if fname.count("#") :
                 continue
             print fname
-            myt = tables.open_file(fname.strip())
-            tablelist.append(myt)
-            #myt.close()
+            filenames.append(fname.strip())
+        flist.close()
+
+    if len(filenames) == 0 :
+        print("glob is failed, is the path %s exist?" % (tablelist))
+        sys.exit(0)
+    return filenames
+
+#--------------------------------------------------
+def load_tables(filelist) :
+    """
+    loading all tables listed in the filelist
+
+    Parameters
+    ----------
+    filelist : 
+        Could be a name of list file that contains 
+        list of h5 files, or a name of h5 file 
+        with wildcard
+
+    Returns
+    ----------
+    tablelist : list
+        list of tables
+    """
+    tablelist = []
+    filenames = glob_filenames(filelist)
+    for i, fname in enumerate(filenames) :
+        myt = tables.open_file(fname)
+        tablelist.append(myt)
 
     print "tablelist %s is successfully loaded" % (filelist)
-
     return tablelist
 
+#--------------------------------------------------
 def close_tables(tablelist) :
+    """
+    function to close all tables.
+
+    Parameters
+    ----------
+    tablelist : list of tables
+    """
+
     for myt in tablelist :
         myt.close()
     print "tablelist %s is successfully closed" % (tablelist)
 
-def check_table(tablelist, nodename, leafname) :
+#--------------------------------------------------
+def check_tables(tablelist, nodename, leafname) :
+    """
+    function to check whether the nodename and leafname exist
+    in tables or not.
+    """
     if nodename[0] != "/" :
         nodename = "/%s" % nodename
 
     if type(tablelist) == str :
-
-        if ".h5" in tablelist or ".hdf5" in tablelist:
-            '''
-            this is not a list, but .h5 file name.
-            just load the table.
-            '''
-            myt = tables.open_file(tablelist)
+        '''
+        tablelist is not loaded yet. load tables first
+        and check nodename and leafname.
+        ''' 
+        filenames = glob_filenames(filelist)
+        for i, fname in enumerate(filenames):
+            myt = tables.open_file(fname)
             if not nodename in myt :
-                #print("nodename %s does not exist." % (nodename))
+                print("nodename %s does not exist." % (nodename))
                 myt.close()
                 return False
 
             node = myt.get_node(nodename)
             if not leafname in node.colnames :
-                #print("leafname %s does not exist." % (leafname))
+                print("leafname %s does not exist." % (leafname))
                 myt.close()
                 return False
             myt.close()
-            return True
-
-        else :
- 
-            flist = open(tablelist)
-            for i, fname in enumerate(flist):
-                if fname.count("#") :
-                    continue
-                print fname
-
-                myt = tables.open_file(fname.strip())
-                if not nodename in myt :
-                    #print("nodename %s does not exist." % (nodename))
-                    myt.close()
-                    return False
-
-                node = myt.get_node(nodename)
-                if not leafname in node.colnames :
-                    #print("leafname %s does not exist." % (leafname))
-                    myt.close()
-                    return False
-                myt.close()
-                return True
-               
-    else :
-        myt=tablelist[0]
-        if not nodename in myt :
-            #print("nodename %s does not exist." % (nodename))
-            myt.close()
-            return False
-
-        node = myt.get_node(nodename)
-        if not leafname in node.colnames :
-            #print("leafname %s does not exist." % (leafname))
-            myt.close()
-            return False
-        myt.close()
         return True
 
-import copy
+    else :
+        '''
+        tablelist is a list of tables
+        ''' 
+        for myt in tablelist:
+            if not nodename in myt :
+                print("nodename %s does not exist." % (nodename))
+                myt.close()
+                return False
+
+            node = myt.get_node(nodename)
+            if not leafname in node.colnames :
+                print("leafname %s does not exist." % (leafname))
+                myt.close()
+                return False
+
+            myt.close()
+        return True
+
+
+#--------------------------------------------------
 def read_tables(tablelist, nodename, leafname) :
     """
-    Read data named leafname from tables and merge them to one (n, 1) array
-    If tablelist is string, it leads only one table at a time and append the data to a buffer.
-    :param tablelist: filename list of h5 files or list of opened h5 objects stored by load_tables()
-    :param nodename:  name of branch of h5 file,
-    :param leafname: name of leaf of h5 file
-    :return (n, 1) numpy array
+    Read data named leafname from tables and merge 
+    them to one (n, 1) array
+    If tablelist is string, it leads only one table 
+    at a time and append the data to a buffer.
+
+    Parameters
+    ----------
+    tablelist : str or list of tables
+        filename of list of h5 files or 
+        filename that contains wildcard or
+        list of opened h5 objects stored with load_tables
+
+    nodename : str
+        name of branch of h5 file
+
+    leafname : str
+        name of leaf of h5 file
+
+    Returns
+    ----------
+    buf : (n, 1) numpy array
+
     """
+
     buf = "notyetfilled" # dummy
     if nodename[0] != "/" :
         nodename = "/%s" % nodename
 
     if type(tablelist) == str :
         '''
-        load one h5 table at a time, slow but uses less runtime memory
+        load one h5 table at a time, slow but 
+        uses less runtime memory
         '''
-        if ".h5" in tablelist or ".hdf5" in tablelist:
-            '''
-            this is not a list, but .h5 file name.
-            just load the table.
-            '''
-            myt = tables.open_file(tablelist)
-            buf = myt.get_node(nodename).col(leafname)
+        filenames = glob_filenames(tablelist) 
+        for i, fname in enumerate(filenames):
+            print("open file %s" % (fname))
+            myt = tables.open_file(fname)
+            if buf == "notyetfilled" :
+                buf = myt.get_node(nodename).col(leafname)
+                
+            else :
+                buf = np.hstack((buf, myt.get_node(nodename).col(leafname)))
+
             myt.close()
-
-        else :
-            flist = open(tablelist)
-            for i, fname in enumerate(flist):
-
-                if fname.count("#") :
-                    continue
-                print fname
-
-                myt = tables.open_file(fname.strip())
-                if buf == "notyetfilled" :
-                    #buf = copy.deepcopy(myt.get_node(nodename).col(leafname))
-                    buf = myt.get_node(nodename).col(leafname)
-                    
-                else :
-                    #buf = np.hstack((buf, copy.deepcopy(myt.get_node(nodename).col(leafname))))
-                    buf = np.hstack((buf, myt.get_node(nodename).col(leafname)))
-
-                myt.close()
-            flist.close()
 
     else :
         '''
+        tablelist is list of tables filled with 
+        load_tables.
         fast, but uses more runtime memory
         '''
         for i, t in enumerate(tablelist):

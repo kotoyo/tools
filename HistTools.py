@@ -1,4 +1,5 @@
 import numpy as np
+import bisect
 import MathTools as MT
 
 #--------------------------------------------------------------------
@@ -39,7 +40,7 @@ def make_1D_hist(xvals, nx, weights=[], x_range=(-1, -1), xbins=[]) :
         w2s[index] += w2
 
     # convert sum(w2) to sigma
-    errors = [m.sqrt(ww) for ww in w2s]
+    errors = [np.sqrt(ww) for ww in w2s]
     #print errors
 
     # generate statistical standard deviation (1 sigma)

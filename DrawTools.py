@@ -25,7 +25,9 @@ mpl.rcParams['font.weight'] = 'bold'
 mpl.rcParams['lines.linewidth'] = 2.0
 mpl.rcParams['axes.facecolor'] = 'white'
 
-global_legendfontsize = 6
+
+#global_legendfontsize = 6
+global_legendfontsize = 10
 
 global_min = 1e-30
 
@@ -130,8 +132,10 @@ class DrawDatum() :
         self.val = np.zeros(1)
         self.xmeshgrid = np.zeros(1)
         self.xbinedges = np.zeros(1)
+        self.xbins = np.zeros(1)
         self.ymeshgrid = np.zeros(1)
         self.ybinedges = np.zeros(1)
+        self.ybins = np.zeros(1)
         self.err = np.zeros(1) # weighted err
         self.staterr = np.zeros(1) # statistical err
         self.color = "red"
@@ -174,7 +178,13 @@ def set_DrawDatum2D(xarray, yarray, key, nxbins, nybins, weights=[], x_range=(-1
     datum = DrawDatum()
     datum.title = key
     datum.xmeshgrid, datum.ymeshgrid, datum.val, datum.err, datum.staterr, xbins, ybins = HT.make_2D_hist(xarray, yarray, nxbins, nybins, weights=weights, x_range=x_range, y_range=y_range)
+
+    datum.xbinedges = datum.xmeshgrid[:,0]
+    datum.xbins = 0.5*(datum.xbinedges[1:]+datum.xbinedges[:-1])
+    datum.ybinedges = datum.ymeshgrid[0]
+    datum.ybins = 0.5*(datum.ybinedges[1:]+datum.ybinedges[:-1])
     return datum
+
 
 def draw_fitgauss(figid, data) :
     fig = plt.figure(figid)
