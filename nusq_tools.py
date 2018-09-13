@@ -26,7 +26,7 @@ def get_nusqtype(ptype) :
         return 1, 2
 
 #___________________________________________________
-def get_initial_spectrum(coszen, ebins_GeV, flavorindex, fluxobj, delta=0, nnu_per_flavor=2, numnu=3) :
+def get_initial_spectrum(coszen, ebins_GeV, flavorindex, fluxobj, delta=0, nnu_per_flavor=2, numnu=3, typeindex=-1) :
     """ Generate initial state for nuSQuIDs multi energy
     
     Parameters
@@ -58,6 +58,10 @@ def get_initial_spectrum(coszen, ebins_GeV, flavorindex, fluxobj, delta=0, nnu_p
         number of neutrino flavors 
         default is 3 for NuE, NuMu, NuTau
 
+    typeindex: int
+        -1 for both Nu and NuBar,
+        0 for both Nu, 1 for NuBar
+
     Return
     ----------
 
@@ -71,23 +75,24 @@ def get_initial_spectrum(coszen, ebins_GeV, flavorindex, fluxobj, delta=0, nnu_p
     inistate = np.zeros((len(ebins_GeV), nnu_per_flavor, numnu))
     for ei, e in enumerate(ebins_GeV) : # energy in GeV
         for ri in range(nnu_per_flavor) : # neutrino or anti-neutrino
-            for fi in range(numnu):       # 0:NuE flavor, 1:NuMu flavor, 2:NuTau flavor
-                flux = 0
-                if fi == flavorindex :
-                    if type(fluxobj) == float or type(fluxobj) == int :
-                        flux = 1e-18*(e/1e5)**(-float(fluxobj))
-                    else :
-                        ptype = NIT.get_ptype(ri, fi)
-                        flux = fluxobj.getFlux(ptype,e,coszen) * e**delta
-
-                inistate[ei][ri][fi] = flux
+            if ri < 0 or ri == typeindex :
+                for fi in range(numnu):       # 0:NuE flavor, 1:NuMu flavor, 2:NuTau flavor
+                    flux = 0
+                    if fi == flavorindex:
+                        if type(fluxobj) == float or type(fluxobj) == int :
+                            flux = 1e-18*(e/1e5)**(-float(fluxobj))
+                        else :
+                            ptype = NIT.get_ptype(ri, fi)
+                            flux = fluxobj.getFlux(ptype,e,coszen) * e**delta
+                    # update flux
+                    inistate[ei][ri][fi] = flux
 
     return inistate
 
 
 
 #___________________________________________________
-def get_initial_spectrum_Atm(coszenbins, ebins_GeV, flavorindex, fluxobj, delta=0, nnu_per_flavor=2, numnu=3) :
+def get_initial_spectrum_Atm(coszenbins, ebins_GeV, flavorindex, fluxobj, delta=0, nnu_per_flavor=2, numnu=3, typeindex = -1) :
     """ Generate initial state for nuSQuIDsAtm
     
     Parameters
@@ -119,6 +124,10 @@ def get_initial_spectrum_Atm(coszenbins, ebins_GeV, flavorindex, fluxobj, delta=
         number of neutrino flavors 
         default is 3 for NuE, NuMu, NuTau
 
+    typeindex: int
+        -1 for both Nu and NuBar,
+        0 for both Nu, 1 for NuBar
+
     Return
     ----------
 
@@ -133,16 +142,17 @@ def get_initial_spectrum_Atm(coszenbins, ebins_GeV, flavorindex, fluxobj, delta=
     for ci, c in enumerate(coszenbins) :
         for ei, e in enumerate(ebins_GeV) : # energy in GeV
             for ri in range(nnu_per_flavor) : # neutrino or anti-neutrino
-                for fi in range(numnu):       # 0:NuE flavor, 1:NuMu flavor, 2:NuTau flavor
-                    flux = 0
-                    if fi == flavorindex :
-                        if type(fluxobj) == float or type(fluxobj) == int :
-                            flux = 1e-18*(e/1e5)**(-float(fluxobj))
-                        else :
-                            ptype = NIT.get_ptype(ri, fi)
-                            flux = fluxobj.getFlux(ptype,e,c) * e**delta
-
-                    inistate[ci][ei][ri][fi] = flux
+                if ri < 0 or ri == typeindex :
+                    for fi in range(numnu):       # 0:NuE flavor, 1:NuMu flavor, 2:NuTau flavor
+                        flux = 0
+                        if fi == flavorindex:
+                            if type(fluxobj) == float or type(fluxobj) == int :
+                                flux = 1e-18*(e/1e5)**(-float(fluxobj))
+                            else :
+                                ptype = NIT.get_ptype(ri, fi)
+                                flux = fluxobj.getFlux(ptype,e,c) * e**delta
+                        # update flux
+                        inistate[ci][ei][ri][fi] = flux
 
     return inistate
 

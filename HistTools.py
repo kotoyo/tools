@@ -4,10 +4,45 @@ import MathTools as MT
 
 #--------------------------------------------------------------------
 def make_1D_hist(xvals, nx, weights=[], x_range=(-1, -1), xbins=[]) :
-    '''
+    """
     Generate 1D histogram with weighted error 
     and standard deviation (for now it is sqrt(yval))
-    '''
+
+    Parameters
+    ----------
+
+    xvals : 1D numpy array
+        array of values to make a histogram
+
+    nx : int
+        number of bins
+
+    weights : 1D numpy array
+        weights to apply to each xval
+
+    x_range : tuple
+        range of histogram. If default value is set, it try to search maximum x 
+        and minimum x and set them to xmin and xmax.
+
+    xbins : 1D numpy array
+        if xbins is set, the given xbins is used to make the histogram.
+
+    Returns
+    -------
+
+    yval : 1D numpy array (size nx)
+        histogram values
+
+    bins : 1D numpy array (size nx + 1)
+        bin edges 
+
+    err : 1D numpy array (size nx) 
+        weighted errors
+
+    stderr : 1D numpy array (size nx) 
+        just square root of each bin in yval
+
+    """
     (xmin, xmax) = x_range
     if (xmin == xmax) :
         xmin = min(xvals.tolist())
