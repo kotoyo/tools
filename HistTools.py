@@ -3,7 +3,7 @@ import bisect
 import MathTools as MT
 
 #--------------------------------------------------------------------
-def make_1D_hist(xvals, nx, weights=[], x_range=(-1, -1), xbins=[]) :
+def make_1D_hist(xvals, nx=100, weights=[], x_range=(-1, -1), xbins=[]) :
     """
     Generate 1D histogram with weighted error 
     and standard deviation (for now it is sqrt(yval))
