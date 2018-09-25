@@ -69,6 +69,8 @@ def make_1D_hist(xvals, nx=100, weights=[], x_range=(-1, -1), xbins=[]) :
         if v < xmin or v > xmax :
             continue
         index = bisect.bisect_left(bins, v)
+        if index >= len(bins) :
+            print("value is %f, index is %d, binsize is %d" % (v, index, len(bins)))
         index -= 1
         #print("v %f index %d binmin %f binmax %f" %(v, index, bins[index], bins[index+1]))
         w2 = weights[i]**2
