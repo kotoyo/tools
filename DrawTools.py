@@ -158,8 +158,8 @@ def ymin_ymax(yvals, scale="") :
 
     Returns
     -------
-    range : tuple
-        tuple of (xmin, xmax)
+    range : list
+        list of [xmin, xmax]
 
     """
 
@@ -178,7 +178,7 @@ def ymin_ymax(yvals, scale="") :
         ymax *= 1.3
         #ymin *= 0.7 
 
-    return (ymin, ymax)
+    return [ymin, ymax]
 
 
 class DrawDatum() :
@@ -220,7 +220,7 @@ class DrawDatum() :
         print("gauss fit result : norm = %f, mean = %f, sigma = %f" % (self.norm, self.mean, self.sigma))
 
 
-def set_DrawDatum(xarray, key, nbins, weights=[], x_range=(-1, -1), xbins =[], color="black", linestyle="-") :
+def set_DrawDatum(xarray, key, nbins, weights=[], x_range=[-1, -1], xbins =[], color="black", linestyle="-") :
     """
     Make DrawDatum object for 1D histogram
 
@@ -238,7 +238,7 @@ def set_DrawDatum(xarray, key, nbins, weights=[], x_range=(-1, -1), xbins =[], c
     weights : numpy array
         weight parameter for histogram
 
-    x_range : tuple
+    x_range : list
         range of x axis 
 
     xbins : numpy array
@@ -266,7 +266,7 @@ def set_DrawDatum(xarray, key, nbins, weights=[], x_range=(-1, -1), xbins =[], c
     return datum
 
 
-def set_DrawDatum2D(xarray, yarray, key, nxbins, nybins, weights=[], x_range=(-1,-1), y_range=(-1,-1)) :
+def set_DrawDatum2D(xarray, yarray, key, nxbins, nybins, weights=[], x_range=[-1,-1], y_range=[-1,-1]) :
     """
     Make DrawDatum object for 2D histogram
 
@@ -290,10 +290,10 @@ def set_DrawDatum2D(xarray, yarray, key, nxbins, nybins, weights=[], x_range=(-1
     weights : numpy array
         weight parameter for histogram
 
-    x_range : tuple
+    x_range : list 
         range of x axis 
 
-    y_range : tuple
+    y_range : list
         range of y axis 
 
     Returns
@@ -336,7 +336,7 @@ def draw_fitgauss(figid, data) :
     ax1.plot(data.xmeshgrid, fity, ":", color=data.color, label=label)
     plt.legend(loc="best")
 
-def draw_1D(figid, data, axislabels, xscale='linear', yscale='log', figtitle="", yrange='', figsize=(6,5)) :
+def draw_1D(figid, data, axislabels=["x-label","y-label"], xscale='linear', yscale='log', figtitle="", yrange='', figsize=(6,5)) :
     """
     Draw 1D histogram plot from DrawDatum objects.
     To superimpose multiple DrawDatum into one figure,
@@ -351,7 +351,7 @@ def draw_1D(figid, data, axislabels, xscale='linear', yscale='log', figtitle="",
     data : DrawDatum object
         DrawDatum you want to draw
 
-    axislabels : tuple or list of string
+    axislabels : list of string
         labels for xaxis and yaxis
 
     xscale : string
@@ -386,7 +386,7 @@ def draw_1D(figid, data, axislabels, xscale='linear', yscale='log', figtitle="",
     ax1.set_ylim(yrange)
     plt.legend(loc="best")
 
-def draw_1D_errors(figid, data, axislabels, xscale='linear', yscale='log', figtitle="", yrange='', errtype='weighted', figsize=(6,5)) :
+def draw_1D_errors(figid, data, axislabels=["x-label","y-label"], xscale='linear', yscale='log', figtitle="", yrange='', errtype='weighted', figsize=(6,5)) :
     '''
     Draw 1D histogram plot from DrawDatum objects
     with error bars.
@@ -404,7 +404,7 @@ def draw_1D_errors(figid, data, axislabels, xscale='linear', yscale='log', figti
     data : DrawDatum object
         DrawDatum you want to draw
 
-    axislabels : tuple or list of string
+    axislabels : list of string
         labels for xaxis and yaxis
 
     xscale : string
@@ -446,7 +446,7 @@ def draw_1D_errors(figid, data, axislabels, xscale='linear', yscale='log', figti
     ax1.set_ylim(yrange)
     plt.legend(loc="best")
 
-def draw_1D_comparison(figid, data, basedata, xlabel, xscale='linear', yscale='log',figtitle="", yrange='', errtype='weighted', yrscale = 'linear', yrrange = [0.2, 2.0], figtype="horizontal") :
+def draw_1D_comparison(figid, data, basedata, xlabel, xscale='linear', yscale='log',figtitle="", yrange='', errtype='weighted', yrscale = 'linear', yrrange = [0.2, 2.0], figtype="horizontal", grid="None") :
     """
     Draw 1D histogram plot from DrawDatum objects
     with error bars and ratio plot of data and basedata.
@@ -483,7 +483,7 @@ def draw_1D_comparison(figid, data, basedata, xlabel, xscale='linear', yscale='l
 
     yrange : list or string
         if empty string, it automatically calculate the best yrange.
-        to give yrange manually, set yrange=(ymin, ymax).
+        to give yrange manually, set yrange=[ymin, ymax].
 
     errtype : string
         if errtype = "weighted", error bar is calculated with weighted method (default)
@@ -492,12 +492,18 @@ def draw_1D_comparison(figid, data, basedata, xlabel, xscale='linear', yscale='l
     yrscale : string
         y axis scale for ratio plot, will be set with set_yscale()
 
-    yrrange : tuple
+    yrrange : list
         y axis range for ratio plot
 
     figtype : string
         if "horizontal", plot and ratio plot is arrigned in horizontal.
         else, plot and ratio plot is arrigned in vertical.
+
+    grid : string
+        "x"    set grid for x axis only
+        "y"    set grid for y axis only
+        "both" set grid for x and y
+        "None" no grid
 
     Returns
     -------
@@ -535,8 +541,10 @@ def draw_1D_comparison(figid, data, basedata, xlabel, xscale='linear', yscale='l
     ax[0].set_xlabel(xlabel)
     ax[0].set_ylim(yrange)
 
-    #global global_legendfontsize
-    plt.legend(loc="upper left", fontsize=global_legendfontsize)
+    if grid != "None" :
+        ax[0].grid(True, axis=grid)
+
+    ax[0].legend(loc="upper left", fontsize=global_legendfontsize)
 
     for d in data :
         if errtype == 'weighted':
@@ -548,11 +556,10 @@ def draw_1D_comparison(figid, data, basedata, xlabel, xscale='linear', yscale='l
     ax[1].set_xlabel(xlabel)
     ax[1].set_yscale(yrscale)
     ax[1].set_ylim(yrrange)
-    #ax[1].set_ylim([0.0,2.0])
-    #ax[1].set_ylim([0.8,1.2])
-    #plt.legend(loc="best")
-    #global global_legendfontsize
-    plt.legend(loc="upper left", fontsize=global_legendfontsize)
+    if grid != "None" :
+        ax[1].grid(True, axis=grid)
+
+    ax[1].legend(loc="upper left", fontsize=global_legendfontsize)
     return fig, ax[0], ax[1]
 
 
@@ -574,6 +581,7 @@ def draw_2D(figid, data, axislabels, norm=colors.LogNorm(), figtitle="", vmin=0,
     plt.colorbar(phist)
     global global_legendfontsize
     plt.legend(loc="best", fontsize=global_legendfontsize)
+
 
 def draw_2D_comparison(figid, data, basedata, axislabels, figtitle="", vrange=(0,0), rvrange=(0,2.0)) :
     fig = plt.figure(figid, figsize=(10,4))

@@ -3,7 +3,7 @@ import bisect
 import MathTools as MT
 
 #--------------------------------------------------------------------
-def make_1D_hist(xvals, nx=100, weights=[], x_range=(-1, -1), xbins=[]) :
+def make_1D_hist(xvals, nx=100, weights=[], x_range=[-1, -1], xbins=[]) :
     """
     Generate 1D histogram with weighted error 
     and standard deviation (for now it is sqrt(yval))
@@ -20,7 +20,7 @@ def make_1D_hist(xvals, nx=100, weights=[], x_range=(-1, -1), xbins=[]) :
     weights : 1D numpy array
         weights to apply to each xval
 
-    x_range : tuple
+    x_range : list
         range of histogram. If default value is set, it try to search maximum x 
         and minimum x and set them to xmin and xmax.
 
@@ -43,7 +43,7 @@ def make_1D_hist(xvals, nx=100, weights=[], x_range=(-1, -1), xbins=[]) :
         just square root of each bin in yval
 
     """
-    (xmin, xmax) = x_range
+    [xmin, xmax] = x_range
     if (xmin == xmax) :
         xmin = min(xvals.tolist())
         xmax = max(xvals.tolist())
@@ -107,7 +107,7 @@ def get_2DHist_axis_from_bins(xbins,ybins) :
 
 
 #--------------------------------------------------------------------
-def make_2D_hist(xvals, yvals, nx, ny, weights=[], x_range=(-1,-1), y_range=(-1,-1)) :
+def make_2D_hist(xvals, yvals, nx, ny, weights=[], x_range=[-1,-1], y_range=[-1,-1]) :
     '''
     Generate 2D histogram with weighted error 
     and standard deviation (for now it is sqrt(yval))
@@ -201,6 +201,7 @@ def cumulative(weights) :
         cumulative[i] = total
     return cumulative
 
+#--------------------------------------------------------------------
 def percentile(cumulative, axisval, percent) :
     '''
     supports only 1dim array for cumulative and axisval
@@ -234,6 +235,7 @@ def percentile(cumulative, axisval, percent) :
 
     return (ratio - p_lo)/(p_hi - p_lo) * (ax_hi - ax_lo) + ax_lo
 
+#--------------------------------------------------------------------
 def median_y(ybins, weights, sigma = 1.0) :
     '''
     get median and error of y values in each
