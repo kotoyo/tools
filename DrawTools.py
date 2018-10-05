@@ -31,48 +31,97 @@ global_legendfontsize = 10
 
 global_min = 1e-30
 
-def htmlheader(title, cutstring) :
-  '''
-  generates header of html
-  '''
-  header = "<!DOCTYPE html PUBLIC '-//W3C//DTD HTML 4.01 Transitional//EN'>\n";
+def htmlheader(title, cutstring="") :
+    """
+    generates header of html
 
-  header += "<html>\n";
-  header += "<head>\n";
-  header += "<meta content='text/html; charset=Shift_JIS' http-equiv='content-type'>\n";
-  header = header + "<title>" + title + "</title>\n";
-  header += "</head>\n";
-  header += "<body>\n";
-  header = header + "<h1>" + title + "</h1>\n";
-  header += "<hr style='width: 100%; height: 2px;'>\n";
-  header += "<h2>Cuts</h2>\n";
-  header = header + cutstring + "\n";
-  return header;
+    Parameters
+    ----------
+    title : string
+        webpage title
+
+    cutstring : string
+        cut condition
+
+    Returns
+    ----------
+    header : string
+
+    """
+    header = "<!DOCTYPE html PUBLIC '-//W3C//DTD HTML 4.01 Transitional//EN'>\n";
+
+    header += "<html>\n";
+    header += "<head>\n";
+    header += "<meta content='text/html; charset=UTF_8' http-equiv='content-type'>\n";
+    header = header + "<title>" + title + "</title>\n";
+    header += "</head>\n";
+    header += "<body>\n";
+    header = header + "<h1>" + title + "</h1>\n";
+    header += "<hr style='width: 100%; height: 2px;'>\n";
+    header += "<h2>Cuts</h2>\n";
+    header = header + cutstring + "\n";
+    return header;
 
 def htmlfooter() :
-  '''
-  generates footer of html
-  '''
-  hooter = "</body>\n</html>";
-  return hooter;
+    """
+    generates footer of html
+
+    Returns
+    -------
+    footer : string
+
+    """
+    hooter = "</body>\n</html>";
+    return hooter;
 
 def savefig(dirname, figname):
-  '''
-  save current figure to figname under dirname,
-  also generates html link to the figure.
-  '''
-  html = "<img src='" + figname + "'>\n"
-  plt.savefig(dirname+figname)
-  return html
-    
+    """
+    save current figure to figname under dirname,
+    also generates html link to the figure.
+
+    Parameter
+    ---------
+    dirname : string
+        directory path to the figure
+
+    figname : string
+        name of figure, must be identical among figs saved in the same directory
+
+    Returns
+    -------
+    html : string
+
+    """
+
+    html = "<img src='" + figname + "'>\n"
+    plt.savefig(dirname+figname)
+    return html
+
 
 def oned_format (binedges, yval) :
-    '''
+    """
     Convert histogram to array of points of x and y
     to draw the hist with plt.plot.
     Use it to change linestyle of histogram 
     (I don't know how to do it with plt.hist) 
-    '''
+
+    Parameters
+    ----------
+    binedges : list or numpy array
+        just set return bin-edges from numpy.histogram
+        size of binedges must be len(yval) + 1
+
+    yval : list or numpy array
+        yvalues 
+        
+    Returns    
+    -------
+    x : list
+        array of x-value
+    y : list
+        array of y-value
+
+    """
 
     x = []
     y = []
@@ -95,10 +144,24 @@ def oned_format (binedges, yval) :
     return x, y
 
 def ymin_ymax(yvals, scale="") :
-    '''
+    """
     Calculate yrange of for given array of y
     Used to specify y_range of 1D histogram plot
-    '''
+
+    Parameters
+    ----------
+    yvals : numpy array
+        y-values for 1D histogram
+
+    scale : string
+        specify "log" for plots with log scale in y-axis
+
+    Returns
+    -------
+    range : tuple
+        tuple of (xmin, xmax)
+
+    """
 
     global global_min
     ymax = max(yvals.tolist())
@@ -115,11 +178,11 @@ def ymin_ymax(yvals, scale="") :
         ymax *= 1.3
         #ymin *= 0.7 
 
-    return [ymin, ymax]
+    return (ymin, ymax)
 
 
 class DrawDatum() :
-    '''
+    """
     Datum class for drawing, applicable for 1D and 2D
     histograms. This class is used by all draw_*** 
     functions.
@@ -127,7 +190,7 @@ class DrawDatum() :
     if 3 histogram will be in one figure, define
     3 DrawDatum object for each histogram.
     To set a histogram, use set_DrawDatum function.
-    '''
+    """
     def __init__(self) :
         self.val = np.zeros(1)
         self.xmeshgrid = np.zeros(1)
@@ -158,9 +221,41 @@ class DrawDatum() :
 
 
 def set_DrawDatum(xarray, key, nbins, weights=[], x_range=(-1, -1), xbins =[], color="black", linestyle="-") :
-    '''
+    """
     Make DrawDatum object for 1D histogram
-    '''
+
+    Parameters
+    ----------
+    xarray : numpy array
+        array of values that you want to make a histogram
+
+    key : string
+        name or description of the histogram, used in the label in legend
+
+    nbins : int
+        number of bins for the histogram
+
+    weights : numpy array
+        weight parameter for histogram
+
+    x_range : tuple
+        range of x axis 
+
+    xbins : numpy array
+        if you want to give your own xbins, set it.
+
+    color : string
+        name of color for drawing 
+ 
+    linestyle : string
+        line style marker
+
+    Returns
+    -------
+    datum : DrawDatum object
+
+
+    """
     datum = DrawDatum()
     datum.title = key
     datum.val, bins, datum.err, datum.staterr = HT.make_1D_hist(xarray, nbins, weights=weights, x_range=x_range, xbins=xbins)
@@ -172,9 +267,40 @@ def set_DrawDatum(xarray, key, nbins, weights=[], x_range=(-1, -1), xbins =[], c
 
 
 def set_DrawDatum2D(xarray, yarray, key, nxbins, nybins, weights=[], x_range=(-1,-1), y_range=(-1,-1)) :
-    '''
+    """
     Make DrawDatum object for 2D histogram
-    '''
+
+    Parameters
+    ----------
+    xarray : numpy array
+        array of values for xaxis that you want to make a histogram
+
+    yarray : numpy array
+        array of values for yaxis that you want to make a histogram
+
+    key : string
+        name or description of the histogram, used in the label in legend
+
+    nxbins : int
+        number of bins for xaxis for the histogram
+
+    nybins : int
+        number of bins for yaxis for the histogram
+
+    weights : numpy array
+        weight parameter for histogram
+
+    x_range : tuple
+        range of x axis 
+
+    y_range : tuple
+        range of y axis 
+
+    Returns
+    -------
+    datum : DrawDatum object
+
+    """
     datum = DrawDatum()
     datum.title = key
     datum.xmeshgrid, datum.ymeshgrid, datum.val, datum.err, datum.staterr, xbins, ybins = HT.make_2D_hist(xarray, yarray, nxbins, nybins, weights=weights, x_range=x_range, y_range=y_range)
@@ -187,6 +313,21 @@ def set_DrawDatum2D(xarray, yarray, key, nxbins, nybins, weights=[], x_range=(-1
 
 
 def draw_fitgauss(figid, data) :
+    """
+    function to draw gaussian function from 
+    fit value of slices of 2D histogram.
+
+    TODO : may be doesn't work anymore?
+
+    Parameters
+    ----------
+    figid : int
+        figid to draw the gaussian
+
+    data : DrawDatum object 
+        data must be generated with set_DrawDatum2D
+
+    """
     fig = plt.figure(figid)
     ax1 = plt.subplot(1,1,1)
     data.fit_gauss()
@@ -196,11 +337,40 @@ def draw_fitgauss(figid, data) :
     plt.legend(loc="best")
 
 def draw_1D(figid, data, axislabels, xscale='linear', yscale='log', figtitle="", yrange='', figsize=(6,5)) :
-    '''
+    """
     Draw 1D histogram plot from DrawDatum objects.
     To superimpose multiple DrawDatum into one figure,
     set identical figid for each draw_1D call.
-    '''
+
+    Parameters
+    ----------
+
+    figid : int
+        unique id for the figure
+
+    data : DrawDatum object
+        DrawDatum you want to draw
+
+    axislabels : tuple or list of string
+        labels for xaxis and yaxis
+
+    xscale : string
+        x axis scale, will be set with set_xscale()
+
+    yscale : string
+        y axis scale, will be set with set_yscale()
+    
+    figtitle : string
+        title of the figure
+
+    yrange : list or string
+        if empty string, it automatically calculate the best yrange.
+        to give yrange manually, set yrange=(ymin, ymax).
+
+    figsize : tuple 
+        should be in format of (x_size, y_size)
+
+    """
     fig = plt.figure(figid, figsize=figsize)
     ax1 = plt.subplot(1,1,1)
     if yrange=='' :
@@ -224,6 +394,40 @@ def draw_1D_errors(figid, data, axislabels, xscale='linear', yscale='log', figti
     errtype='std' for standard deviation err.
     To superimpose multiple DrawDatum into one figure,
     set identical figid for each draw_1D call.
+
+    Parameters
+    ----------
+
+    figid : int
+        unique id for the figure
+
+    data : DrawDatum object
+        DrawDatum you want to draw
+
+    axislabels : tuple or list of string
+        labels for xaxis and yaxis
+
+    xscale : string
+        x axis scale, will be set with set_xscale()
+
+    yscale : string
+        y axis scale, will be set with set_yscale()
+    
+    figtitle : string
+        title of the figure
+
+    yrange : list or string
+        if empty string, it automatically calculate the best yrange.
+        to give yrange manually, set yrange=(ymin, ymax).
+
+    errtype : string
+        if errtype = "weighted", error bar is calculated with weighted method (default)
+        else : just 1 sigma standard deviation of y value is used for error bars.
+
+    figsize : tuple 
+        should be in format of (x_size, y_size)
+
+ 
     '''
 
     fig = plt.figure(figid, figsize=figsize)
@@ -242,8 +446,8 @@ def draw_1D_errors(figid, data, axislabels, xscale='linear', yscale='log', figti
     ax1.set_ylim(yrange)
     plt.legend(loc="best")
 
-def draw_1D_comparison(figid, data, basedata, xlabel, xscale='linear', yscale='log',figtitle="", yrange='', errtype='weighted', yrscale = 'linear', yrrange = [0.2, 2.0]) :
-    '''
+def draw_1D_comparison(figid, data, basedata, xlabel, xscale='linear', yscale='log',figtitle="", yrange='', errtype='weighted', yrscale = 'linear', yrrange = [0.2, 2.0], figtype="horizontal") :
+    """
     Draw 1D histogram plot from DrawDatum objects
     with error bars and ratio plot of data and basedata.
     By default the error bars are weighted err, or set
@@ -252,13 +456,69 @@ def draw_1D_comparison(figid, data, basedata, xlabel, xscale='linear', yscale='l
     same bins for data and basedata. Somehow giving bins parameter
     to set_DrawDatum doesn't work as expected, for now, use x_range
     parameter and nx to get same bins.
-    '''
-    fig = plt.figure(figid)
+
+    Parameters
+    ----------
+
+    figid : int
+        unique id for the figure
+
+    data : list 
+        list of DrawDatum you want to draw
+
+    basedata : DrawDatum object
+        this data is the base data to compare with others
+
+    xlabel : string
+        label of x axis
+
+    xscale : string
+        x axis scale, will be set with set_xscale()
+
+    yscale : string
+        y axis scale, will be set with set_yscale()
+
+    figtitle : string
+        title of the figure
+
+    yrange : list or string
+        if empty string, it automatically calculate the best yrange.
+        to give yrange manually, set yrange=(ymin, ymax).
+
+    errtype : string
+        if errtype = "weighted", error bar is calculated with weighted method (default)
+        else : just 1 sigma standard deviation of y value is used for error bars.
+        
+    yrscale : string
+        y axis scale for ratio plot, will be set with set_yscale()
+
+    yrrange : tuple
+        y axis range for ratio plot
+
+    figtype : string
+        if "horizontal", plot and ratio plot is arrigned in horizontal.
+        else, plot and ratio plot is arrigned in vertical.
+
+    Returns
+    -------
+    fig : figure object    
+    ax[0] : axis object for plot
+    ax[1] : axis object for ratio plot
+
+    """
+    plt.figure(figid)
     if yrange=='' :
         yrange = ymin_ymax(basedata.val, scale=yscale) 
-    ax1 = plt.subplot(1,2,1)
+
+    ax = ""
+    if figtype == "horizontal" :
+        fig, ax = plt.subplots(1, 2, sharex=False)
+    else :
+        fig, ax = plt.subplots(2, 1, sharex=True)
+        fig.subplots_adjust(hspace=0)
+
     print figtitle
-    ax1.set_title(figtitle)
+    ax[0].set_title(figtitle)
     for d in data :
         print d.val
         yrange2 = ymin_ymax(d.val, scale=yscale)
@@ -267,34 +527,33 @@ def draw_1D_comparison(figid, data, basedata, xlabel, xscale='linear', yscale='l
         if (yrange2[1] > yrange[1]) :
             yrange[1] = yrange2[1]
         if errtype == 'weighted':
-            ax1.errorbar(d.xbins, d.val, yerr=d.err, color=d.color, label=d.title, fmt=d.linestyle )
+            ax[0].errorbar(d.xbins, d.val, yerr=d.err, color=d.color, label=d.title, fmt=d.linestyle )
         else :
-            ax1.errorbar(d.xbins, d.val, yerr=d.staterr, color=d.color, label=d.title, fmt=d.linestyle )
-    ax1.set_xscale(xscale)
-    ax1.set_yscale(yscale)
-    ax1.set_xlabel(xlabel)
-    ax1.set_ylim(yrange)
+            ax[0].errorbar(d.xbins, d.val, yerr=d.staterr, color=d.color, label=d.title, fmt=d.linestyle )
+    ax[0].set_xscale(xscale)
+    ax[0].set_yscale(yscale)
+    ax[0].set_xlabel(xlabel)
+    ax[0].set_ylim(yrange)
 
     #global global_legendfontsize
     plt.legend(loc="upper left", fontsize=global_legendfontsize)
 
-    ax2 = plt.subplot(1,2,2)
     for d in data :
         if errtype == 'weighted':
             ratio, sigma = MT.calc_divide_errors(d.val, d.err, basedata.val, basedata.err)
         else :
             ratio, sigma = MT.calc_divide_errors(d.val, d.staterr, basedata.val, basedata.staterr)
         ratiolabel = d.title + "/" + basedata.title
-        ax2.errorbar(d.xbins, ratio, yerr=sigma, color=d.color, label=ratiolabel, fmt=d.linestyle )
-    ax2.set_xlabel(xlabel)
-    ax2.set_yscale(yrscale)
-    ax2.set_ylim(yrrange)
-    #ax2.set_ylim([0.0,2.0])
-    #ax2.set_ylim([0.8,1.2])
+        ax[1].errorbar(d.xbins, ratio, yerr=sigma, color=d.color, label=ratiolabel, fmt=d.linestyle )
+    ax[1].set_xlabel(xlabel)
+    ax[1].set_yscale(yrscale)
+    ax[1].set_ylim(yrrange)
+    #ax[1].set_ylim([0.0,2.0])
+    #ax[1].set_ylim([0.8,1.2])
     #plt.legend(loc="best")
     #global global_legendfontsize
     plt.legend(loc="upper left", fontsize=global_legendfontsize)
-    return fig, ax1, ax2
+    return fig, ax[0], ax[1]
 
 
 def draw_2D(figid, data, axislabels, norm=colors.LogNorm(), figtitle="", vmin=0, vmax=0) :
