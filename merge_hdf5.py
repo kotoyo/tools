@@ -1,6 +1,11 @@
 # 
 import tables
 import numpy as np
+import sys
+if sys.version_info[0] >= 3:
+    import pickle
+else:
+    import cPickle as pickle
 
 #--------------------------------------------------
 import glob
@@ -208,6 +213,64 @@ def read_tables(tablelist, nodename, leafname) :
                 buf = np.hstack((buf, tablelist[i].get_node(nodename).col(leafname)))
 
     print nodename, leafname, buf.shape
+    return buf
+
+#--------------------------------------------------
+def read_pickles(tablelist, leafname) :
+    """
+    Read data named leafname from dictionaries and merge 
+    them to one (n, 1) array
+    If tablelist is string, it leads only one dictionary
+    at a time and append the data to a buffer.
+
+    Parameters
+    ----------
+    tablelist : str or list of tables
+        filename of list of pickles files or 
+        filename that contains wildcard or
+        list of opened dictionaries 
+
+    leafname : str
+        name of key of dictionary
+
+    Returns
+    ----------
+    buf : (n, 1) numpy array
+
+    """
+
+    buf = "notyetfilled" # dummy
+
+    if type(tablelist) == str :
+        '''
+        load one pickle at a time, slow but 
+        uses less runtime memory
+        '''
+        filenames = glob_filenames(tablelist) 
+        for i, fname in enumerate(filenames):
+            print("open file %s" % (fname))
+            myt = pickle.load(open(fname))
+            if buf == "notyetfilled" :
+                buf = myt[leafname]
+                
+            else :
+                buf = np.hstack((buf, myt[leafname]))
+
+
+    else :
+        '''
+        tablelist is list of dictionary filled with 
+        load_tables.
+        fast, but uses more runtime memory
+        '''
+        for i, t in enumerate(tablelist):
+            #print i, t
+            if i == 0 :
+                buf=tablelist[i][leafname]
+            else :
+                buf = np.hstack((buf, tablelist[i][leafname]))
+
+    print leafname, buf.shape
     return buf
 
 
