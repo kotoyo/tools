@@ -60,7 +60,7 @@ def get_initial_spectrum(coszen, ebins_GeV, flavorindex, fluxobj, delta=0, nnu_p
 
     typeindex: int
         -1 for both Nu and NuBar,
-        0 for both Nu, 1 for NuBar
+        0 for Nu, 1 for NuBar
 
     Return
     ----------
@@ -75,7 +75,7 @@ def get_initial_spectrum(coszen, ebins_GeV, flavorindex, fluxobj, delta=0, nnu_p
     inistate = np.zeros((len(ebins_GeV), nnu_per_flavor, numnu))
     for ei, e in enumerate(ebins_GeV) : # energy in GeV
         for ri in range(nnu_per_flavor) : # neutrino or anti-neutrino
-            if ri < 0 or ri == typeindex :
+            if typeindex < 0 or ri == typeindex :
                 for fi in range(numnu):       # 0:NuE flavor, 1:NuMu flavor, 2:NuTau flavor
                     flux = 0
                     if fi == flavorindex:
@@ -142,7 +142,7 @@ def get_initial_spectrum_Atm(coszenbins, ebins_GeV, flavorindex, fluxobj, delta=
     for ci, c in enumerate(coszenbins) :
         for ei, e in enumerate(ebins_GeV) : # energy in GeV
             for ri in range(nnu_per_flavor) : # neutrino or anti-neutrino
-                if ri < 0 or ri == typeindex :
+                if typeindex < 0 or ri == typeindex :
                     for fi in range(numnu):       # 0:NuE flavor, 1:NuMu flavor, 2:NuTau flavor
                         flux = 0
                         if fi == flavorindex:
@@ -151,8 +151,9 @@ def get_initial_spectrum_Atm(coszenbins, ebins_GeV, flavorindex, fluxobj, delta=
                             else :
                                 ptype = NIT.get_ptype(ri, fi)
                                 flux = fluxobj.getFlux(ptype,e,c) * e**delta
-                        # update flux
-                        inistate[ci][ei][ri][fi] = flux
+                            # update flux
+                            inistate[ci][ei][ri][fi] = flux
+
 
     return inistate
 
