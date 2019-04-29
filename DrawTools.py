@@ -213,7 +213,7 @@ class DrawDatum() :
     def fit_gauss(self) :
         param0 = (self.norm, self.mean, self.sigma)
         xbins = np.array(0.5*self.xbinedges[:-1]+self.xbinedges[1:])
-        param_output = scipy.optimize.leastsq(gauss_residuals, param0, args=(self.val, xbins), full_output=True)
+        param_output = scipy.optimize.leastsq(MT.gauss_residuals, param0, args=(self.val, xbins), full_output=True)
         self.norm = param_output[0][0]
         self.mean = param_output[0][1]
         self.sigma = param_output[0][2]
