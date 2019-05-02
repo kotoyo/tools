@@ -106,30 +106,34 @@ def check_tables(tablelist, nodename, leafname) :
     """
     function to check whether the nodename and leafname exist
     in tables or not.
+    if succeed, it returns number of tables.
+    if failed it returns -1.
     """
     if nodename[0] != "/" :
         nodename = "/%s" % nodename
 
+    nfiles = 0
     if type(tablelist) == str :
         '''
         tablelist is not loaded yet. load tables first
         and check nodename and leafname.
         ''' 
-        filenames = glob_filenames(filelist)
+        filenames = glob_filenames(tablelist)
         for i, fname in enumerate(filenames):
             myt = tables.open_file(fname)
             if not nodename in myt :
                 print("nodename %s does not exist." % (nodename))
                 myt.close()
-                return False
+                return -1
 
             node = myt.get_node(nodename)
             if not leafname in node.colnames :
                 print("leafname %s does not exist." % (leafname))
                 myt.close()
-                return False
+                return -1
             myt.close()
-        return True
+            nfiles = nfiles + 1
+        return nfiles
 
     else :
         '''
@@ -147,8 +151,9 @@ def check_tables(tablelist, nodename, leafname) :
                 myt.close()
                 return False
 
+            nfiles = nfiles + 1
             myt.close()
-        return True
+        return nfiles
 
 
 #--------------------------------------------------
