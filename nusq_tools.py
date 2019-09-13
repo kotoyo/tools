@@ -158,6 +158,58 @@ def get_initial_spectrum_Atm(coszenbins, ebins_GeV, flavorindex, fluxobj, delta=
     return inistate
 
 #___________________________________________________
+def get_initial_spectrum_RealAtm(coszenbins, ebins_GeV, fluxobj, delta=0, nnu_per_flavor=2, numnu=3) :
+    """ Generate initial state with real AtmFlux for nuSQuIDsAtm
+    
+    Parameters
+    ----------
+
+    coszenbins : numpy array
+        cosine zenith bins
+
+    ebins_GeV : numpy array
+        energy bins in GeV
+
+    fluxobj : obj
+        obj : NewNuFlux obj
+ 
+    delta : float
+        CR index change, active only for NewNuFlux
+
+    nnu_per_flavor : int
+        number of neutrinos per flavor
+        default is 2 for neutrino and anti-neutrino
+
+    numnu : int
+        number of neutrino flavors 
+        default is 3 for NuE, NuMu, NuTau
+
+    Return
+    ----------
+
+    inistate : 4-dim numpy array 
+
+    """
+    from icecube import NewNuFlux
+    import nusq_icetray_tools as NIT
+
+    inistate = np.zeros((len(coszenbins),len(ebins_GeV), nnu_per_flavor, numnu))
+    for ci, c in enumerate(coszenbins) :
+        for ei, e in enumerate(ebins_GeV) : # energy in GeV
+            for ri in range(nnu_per_flavor) : # neutrino or anti-neutrino
+                for fi in range(numnu):       # 0:NuE flavor, 1:NuMu flavor, 2:NuTau flavor
+                    if fi < 2: # for nue and numu flavor only
+                        ptype = NIT.get_ptype(ri, fi)
+                        flux = fluxobj.getFlux(ptype,e,c) * e**delta
+                        # update flux
+                        inistate[ci][ei][ri][fi] = flux
+
+
+    return inistate
+
+
+
+#___________________________________________________
 def get_endstate(nsq_multi, ebins_eV, nnu_per_flavor=2, numnu=3) :
     """ Generate initial state for nuSQuIDs multi energy
     

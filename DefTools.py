@@ -1,4 +1,6 @@
-
+from enum import Enum
+import numpy as np
+ 
 #-------------------------------------------------
 class ParticleType(Enum) :
     '''
@@ -21,6 +23,8 @@ class ParticleType(Enum) :
 
 #-------------------------------------------------
 def GetI3ParticleType(pdg) :
+    from icecube import dataclasses
+
     if pdg == 11 :
         return dataclasses.I3Particle.EMinus
     elif pdg == -11 :

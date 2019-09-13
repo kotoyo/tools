@@ -3,7 +3,7 @@ import bisect
 import MathTools as MT
 
 #--------------------------------------------------------------------
-def make_1D_hist(xvals, nx=100, weights=[], x_range=[-1, -1], xbins=[]) :
+def make_1D_hist(xvals, nbins=100, weights=[], x_range=[-1, -1], xbins=[]) :
     """
     Generate 1D histogram with weighted error 
     and standard deviation (for now it is sqrt(yval))
@@ -14,7 +14,7 @@ def make_1D_hist(xvals, nx=100, weights=[], x_range=[-1, -1], xbins=[]) :
     xvals : 1D numpy array
         array of values to make a histogram
 
-    nx : int
+    nbins : int
         number of bins
 
     weights : 1D numpy array
@@ -30,34 +30,37 @@ def make_1D_hist(xvals, nx=100, weights=[], x_range=[-1, -1], xbins=[]) :
     Returns
     -------
 
-    yval : 1D numpy array (size nx)
+    yval : 1D numpy array (size nbins)
         histogram values
 
-    bins : 1D numpy array (size nx + 1)
+    bins : 1D numpy array (size nbins + 1)
         bin edges 
 
-    err : 1D numpy array (size nx) 
+    err : 1D numpy array (size nbins) 
         weighted errors
 
-    stderr : 1D numpy array (size nx) 
+    stderr : 1D numpy array (size nbis) 
         just square root of each bin in yval
 
     """
-    [xmin, xmax] = x_range
-    if (xmin == xmax) :
-        xmin = min(xvals.tolist())
-        xmax = max(xvals.tolist())
-        diff = xmax - xmin
-        xmin -= 0.05*diff
-        xmax += 0.05*diff
     if len(weights) == 0 :
         weights = np.ones(len(xvals))
 
     yval = []
+    [xmin, xmax] = x_range
+
     if len(xbins) > 0 :
+        xmin = xbins[0]
+        xmax = xbins[-1]
         yval, bins = np.histogram(xvals, bins=xbins, weights=weights)
     else :
-        yval, bins = np.histogram(xvals, nx, weights=weights, range=(xmin,xmax))
+        if (xmin == xmax) :
+            xmin = min(xvals.tolist())
+            xmax = max(xvals.tolist())
+            diff = xmax - xmin
+            xmin -= 0.05*diff
+            xmax += 0.05*diff
+        yval, bins = np.histogram(xvals, nbins, weights=weights, range=(xmin,xmax))
 
     w2s = np.zeros(len(yval))
     #print yval
@@ -144,7 +147,7 @@ def make_2D_hist(xvals, yvals, nx, ny, weights=[], x_range=[-1,-1], y_range=[-1,
     #assert(len(xvals) == len(yvals)) 
     #assert(len(xvals) == len(weights))
 
-    print xvals, yvals 
+    #print xvals, yvals 
     i = 0
     for i, xvalue in enumerate(xvals) :
         yvalue = yvals[i]

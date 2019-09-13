@@ -25,11 +25,33 @@ mpl.rcParams['font.weight'] = 'bold'
 mpl.rcParams['lines.linewidth'] = 2.0
 mpl.rcParams['axes.facecolor'] = 'white'
 
+colors_10 = ['#1f77b4',
+          '#ff7f0e',
+          '#2ca02c',
+          '#d62728',
+          '#9467bd',
+          '#8c564b',
+          '#e377c2',
+          '#7f7f7f',
+          '#bcbd22',
+          '#17becf',
+          '#1a55FF']
+
+colors_20 = ["#1f77b4", "#aec7e8", "#ff7f0e", "#ffbb78", "#2ca02c", "#98df8a", "#d62728", "#ff9896", "#9467bd","#c5b0d5", "#8c564b", "#c49c94", "#e377c2", "#f7b6d2", "#7f7f7f", "#c7c7c7", "#bcbd22", "#dbdb8d", "#17becf", "#9edae5"]
 
 #global_legendfontsize = 6
 global_legendfontsize = 10
 
 global_min = 1e-30
+
+
+def mkdir(dirname, overwrite=True) :
+    import os
+    import shutil
+    if overwrite and os.path.exists(dirname) : 
+        shutil.rmtree(dirname)
+    if not os.path.exists(dirname) :
+        os.makedirs(dirname)
 
 def htmlheader(title, cutstring="") :
     """
@@ -92,7 +114,6 @@ def savefig(dirname, figname):
     html : string
 
     """
-
     html = "<img src='" + figname + "'>\n"
     plt.savefig(dirname+figname)
     return html
@@ -171,7 +192,7 @@ def ymin_ymax(yvals, scale="") :
         ymax *= 10
         if (ymin <= 0) :
             cut = (yvals>0)
-            print yvals
+            #print yvals
             ymin = min(yvals[cut].tolist())
         #ymin *= 0.2 
     else :
@@ -220,7 +241,8 @@ class DrawDatum() :
         print("gauss fit result : norm = %f, mean = %f, sigma = %f" % (self.norm, self.mean, self.sigma))
 
 
-def set_DrawDatum(xarray, key, nbins, weights=[], x_range=[-1, -1], xbins =[], color="black", linestyle="-") :
+
+def set_DrawDatum(xarray, key, nbins=100, weights=[], x_range=[-1, -1], xbins =[], color="black", linestyle="-") :
     """
     Make DrawDatum object for 1D histogram
 
@@ -258,7 +280,7 @@ def set_DrawDatum(xarray, key, nbins, weights=[], x_range=[-1, -1], xbins =[], c
     """
     datum = DrawDatum()
     datum.title = key
-    datum.val, bins, datum.err, datum.staterr = HT.make_1D_hist(xarray, nbins, weights=weights, x_range=x_range, xbins=xbins)
+    datum.val, bins, datum.err, datum.staterr = HT.make_1D_hist(xarray, nbins=nbins, weights=weights, x_range=x_range, xbins=xbins)
     datum.xbinedges = bins
     datum.xbins = 0.5*(bins[1:]+bins[:-1])
     datum.color = color
@@ -446,7 +468,7 @@ def draw_1D_errors(figid, data, axislabels=["x-label","y-label"], xscale='linear
     ax1.set_ylim(yrange)
     plt.legend(loc="best")
 
-def draw_1D_comparison(figid, data, basedata, xlabel, xscale='linear', yscale='log',figtitle="", yrange='', errtype='weighted', yrscale = 'linear', yrrange = [0.2, 2.0], figtype="horizontal", grid="None") :
+def draw_1D_comparison(figid, data, basedata, xlabel, xscale='linear', yscale='log',figtitle="", yrange='', errtype='weighted', yrscale = 'linear', yrrange = [0.2, 2.0], figtype="horizontal", grid="None", figsize = (11,5)) :
     """
     Draw 1D histogram plot from DrawDatum objects
     with error bars and ratio plot of data and basedata.
@@ -512,7 +534,7 @@ def draw_1D_comparison(figid, data, basedata, xlabel, xscale='linear', yscale='l
     ax[1] : axis object for ratio plot
 
     """
-    plt.figure(figid)
+    fig = plt.figure(figid, figsize=figsize)
     if yrange=='' :
         yrange = ymin_ymax(basedata.val, scale=yscale) 
 
@@ -523,10 +545,10 @@ def draw_1D_comparison(figid, data, basedata, xlabel, xscale='linear', yscale='l
         fig, ax = plt.subplots(2, 1, sharex=True)
         fig.subplots_adjust(hspace=0)
 
-    print figtitle
+    #print figtitle
     ax[0].set_title(figtitle)
     for d in data :
-        print d.val
+        #print d.val
         yrange2 = ymin_ymax(d.val, scale=yscale)
         if (yrange2[0] < yrange[0]) :
             yrange[0] = yrange2[0]
@@ -544,7 +566,7 @@ def draw_1D_comparison(figid, data, basedata, xlabel, xscale='linear', yscale='l
     if grid != "None" :
         ax[0].grid(True, axis=grid)
 
-    ax[0].legend(loc="upper left", fontsize=global_legendfontsize)
+    ax[0].legend(loc="best", fontsize=global_legendfontsize)
 
     for d in data :
         if errtype == 'weighted':
@@ -602,7 +624,7 @@ def draw_2D_comparison(figid, data, basedata, axislabels, figtitle="", vrange=(0
     ax2.set_title(ratiolabel)
     plt.legend(loc="best", fontsize=global_legendfontsize)
     plt.colorbar(phist2)
-    plt.subplots_adjust(hspace=0.2, wspace=0.2)
+    plt.subplots_adjust(hspace=0.2, wspace=0.5)
  
 def draw_2D_basic(ax, x, y, w, xlabel, ylabel, title, yscale="linear", xscale="linear", vmin=0, vmax=0) :
     c1 = ax.pcolormesh(x, y, w)
