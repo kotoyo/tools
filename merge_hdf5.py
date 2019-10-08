@@ -142,19 +142,58 @@ def check_tables(tablelist, nodename, leafname) :
         for myt in tablelist:
             if not nodename in myt :
                 print("nodename %s does not exist." % (nodename))
-                myt.close()
                 return False
 
             node = myt.get_node(nodename)
             if not leafname in node.colnames :
                 print("leafname %s does not exist." % (leafname))
-                myt.close()
                 return False
 
             nfiles = nfiles + 1
-            myt.close()
         return nfiles
 
+#--------------------------------------------------
+def check_leaf(tablelist, nodename, leafname) :
+    """
+    function to check whether the nodename and leafname exist
+    in tables or not.
+    It checks the first table only.
+    To check whole tables, use check_tables.
+    """
+    if nodename[0] != "/" :
+        nodename = "/%s" % nodename
+
+    if type(tablelist) == str :
+        '''
+        tablelist is not loaded yet. load tables first
+        and check nodename and leafname.
+        ''' 
+        filenames = glob_filenames(tablelist)
+        myt = tables.open_file(filenames[0])
+        if not nodename in myt :
+            myt.close()
+            return False
+
+        node = myt.get_node(nodename)
+        if not leafname in node.colnames :
+            myt.close()
+            return False
+        myt.close()
+        return True
+
+    else :
+        '''
+        tablelist is a list of tables
+        ''' 
+        myt = tablelist[0]
+        if not nodename in myt :
+            return False
+
+        node = myt.get_node(nodename)
+        if not leafname in node.colnames :
+            return False
+
+        return True
 
 #--------------------------------------------------
 def read_tables(tablelist, nodename, leafname) :
