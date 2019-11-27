@@ -226,16 +226,16 @@ def read_tables(tablelist, nodename, leafname) :
     if nodename[0] != "/" :
         nodename = "/%s" % nodename
 
-    if type(tablelist) == str :
+    if isinstance(tablelist, str) :
         '''
         load one h5 table at a time, slow but 
         uses less runtime memory
         '''
         filenames = glob_filenames(tablelist) 
         for i, fname in enumerate(filenames):
-            print("open file %s" % (fname))
+            #print("open file %s" % (fname))
             myt = tables.open_file(fname)
-            if buf == "notyetfilled" :
+            if isinstance(buf, str) :
                 buf = myt.get_node(nodename).col(leafname)
                 
             else :
@@ -285,16 +285,16 @@ def read_pickles(tablelist, leafname) :
 
     buf = "notyetfilled" # dummy
 
-    if type(tablelist) == str :
+    if isinstance(tablelist, str) :
         '''
         load one pickle at a time, slow but 
         uses less runtime memory
         '''
         filenames = glob_filenames(tablelist) 
         for i, fname in enumerate(filenames):
-            print("open file %s" % (fname))
+            #print("open file %s" % (fname))
             myt = pickle.load(open(fname))
-            if buf == "notyetfilled" :
+            if isinstance(buf, str) :
                 buf = myt[leafname]
                 
             else :

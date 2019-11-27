@@ -225,22 +225,38 @@ class DrawDatum() :
         self.color = "red"
         self.linestyle = "-"
         self.title= "none"
+        self.counts = 0
 
         # for 1D gaussian fit
-        self.norm = 1
-        self.mean = 0
-        self.sigma = 1
+        self.xnorm = 1
+        self.xmean = 0
+        self.xsigma = 1
 
-    def fit_gauss(self) :
-        param0 = (self.norm, self.mean, self.sigma)
-        xbins = np.array(0.5*self.xbinedges[:-1]+self.xbinedges[1:])
-        param_output = scipy.optimize.leastsq(MT.gauss_residuals, param0, args=(self.val, xbins), full_output=True)
-        self.norm = param_output[0][0]
-        self.mean = param_output[0][1]
-        self.sigma = param_output[0][2]
-        print("gauss fit result : norm = %f, mean = %f, sigma = %f" % (self.norm, self.mean, self.sigma))
+    def fit_gauss_x(self) :
+        param0 = (self.xnorm, self.xmean, self.xsigma)
+        param_output = scipy.optimize.leastsq(MT.gauss_residuals, param0, args=(self.val, self.xbins), full_output=True)
+        self.xnorm = param_output[0][0]
+        self.xmean = param_output[0][1]
+        self.xsigma = param_output[0][2]
+        print("gauss fit result : xnorm = %f, xmean = %f, xsigma = %f" % (self.xnorm, self.xmean, self.xsigma))
 
+    def printdatum(self) :
 
+        print "val", self.val
+        print "xmeshgrid", self.xmeshgrid
+        print "xbinedges", self.xbinedges
+        print "xbins", self.xbins
+        print "ymeshgrid", self.ymeshgrid
+        print "ybinedges", self.ybinedges
+        print "ybins", self.ybins
+        print "err", self.err
+        print "staterr", self.staterr
+        print "color", self.color
+        print "linestyle", self.linestyle
+        print "title", self.title
+        print "xnorm", self.xnorm
+        print "xmean", self.xmean
+        print "xsigma", self.xsigma
 
 def set_DrawDatum(xarray, key, nbins=100, weights=[], x_range=[-1, -1], xbins =[], color="black", linestyle="-") :
     """
@@ -285,6 +301,10 @@ def set_DrawDatum(xarray, key, nbins=100, weights=[], x_range=[-1, -1], xbins =[
     datum.xbins = 0.5*(bins[1:]+bins[:-1])
     datum.color = color
     datum.linestyle = linestyle
+    if len(weights) == 0:
+        datum.xmean = float(sum(xarray))/len(xarray)
+    else :
+        datum.xmean = sum(xarray*weights)/sum(weights)
     return datum
 
 
@@ -331,10 +351,14 @@ def set_DrawDatum2D(xarray, yarray, key, nxbins, nybins, weights=[], x_range=[-1
     datum.xbins = 0.5*(datum.xbinedges[1:]+datum.xbinedges[:-1])
     datum.ybinedges = datum.ymeshgrid[0]
     datum.ybins = 0.5*(datum.ybinedges[1:]+datum.ybinedges[:-1])
+    if len(weights) == 0:
+        datum.xmean = float(sum(xarray))/len(xarray)
+    else :
+        datum.xmean = sum(xarray*weights)/sum(weights)
     return datum
 
 
-def draw_fitgauss(figid, data) :
+def draw_fitgauss_2D(figid, data) :
     """
     function to draw gaussian function from 
     fit value of slices of 2D histogram.
@@ -406,6 +430,27 @@ def draw_1D(figid, data, axislabels=["x-label","y-label"], xscale='linear', ysca
     ax1.set_xlabel(axislabels[0])
     ax1.set_ylabel(axislabels[1])
     ax1.set_ylim(yrange)
+    plt.legend(loc="best")
+
+def draw_fitgauss_x(figid, data) :
+    """
+    function to draw gaussian function
+
+    Parameters
+    ----------
+    figid : int
+        figid to draw the gaussian
+
+    data : DrawDatum object 
+        data must be generated with set_DrawDatum
+
+    """
+    fig = plt.figure(figid)
+    ax1 = plt.subplot(1,1,1)
+    data.fit_gauss_x()
+    fity = MT.gaussian(data.xbins, data.xnorm, data.xmean, data.xsigma)
+    label = "fitgaus : N=%2.2f M=%2.2f S=%2.2f" %(data.xnorm, data.xmean, data.xsigma)
+    ax1.plot(data.xbins, fity, ":", color=data.color, label=label)
     plt.legend(loc="best")
 
 def draw_1D_errors(figid, data, axislabels=["x-label","y-label"], xscale='linear', yscale='log', figtitle="", yrange='', errtype='weighted', figsize=(6,5)) :
