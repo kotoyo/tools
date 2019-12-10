@@ -122,6 +122,7 @@ def make_2D_hist(xvals, yvals, nx, ny, weights=[], x_range=[-1,-1], y_range=[-1,
     statistical errors (2D)
     xbins (1D) = xmeshgrid[0]
     ybins (1D) = ymeshgrid[0]
+    w2s = weight**2 
     '''
 
     xmin = x_range[0]
@@ -175,7 +176,7 @@ def make_2D_hist(xvals, yvals, nx, ny, weights=[], x_range=[-1,-1], y_range=[-1,
     # calculate statistical errors
     staterrs = np.sqrt(zval)
    
-    return xmeshgrid, ymeshgrid, zval, errors, staterrs, xmeshgrid[:,0], ymeshgrid[0]
+    return xmeshgrid, ymeshgrid, zval, errors, staterrs, xmeshgrid[:,0], ymeshgrid[0], w2s
 
 
 #--------------------------------------------------------------------
