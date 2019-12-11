@@ -36,11 +36,8 @@ def make_1D_hist(xvals, nbins=100, weights=[], x_range=[-1, -1], xbins=[]) :
     bins : 1D numpy array (size nbins + 1)
         bin edges 
 
-    err : 1D numpy array (size nbins) 
-        weighted errors
-
-    stderr : 1D numpy array (size nbis) 
-        just square root of each bin in yval
+    w2s  : 1D numpy array (size nbins) 
+        sum of weight*weight per bin
 
     """
     if len(weights) == 0 :
@@ -79,14 +76,7 @@ def make_1D_hist(xvals, nbins=100, weights=[], x_range=[-1, -1], xbins=[]) :
         w2 = weights[i]**2
         w2s[index] += w2
 
-    # convert sum(w2) to sigma
-    errors = [np.sqrt(ww) for ww in w2s]
-    #print errors
-
-    # generate statistical standard deviation (1 sigma)
-    staterrs = np.sqrt(yval)
-   
-    return yval, bins, errors, staterrs
+    return yval, bins, w2s
 
 
 #--------------------------------------------------------------------
@@ -117,12 +107,10 @@ def make_2D_hist(xvals, yvals, nx, ny, weights=[], x_range=[-1,-1], y_range=[-1,
     returns :
     xmeshgrid (2D)
     ymeshgrid (2D)
-    weights (2D)
-    weighted errors for mean value (2D)
-    statistical errors (2D)
+    w : sum of weights (2D)
+    w2s : sum of weights**2 (2D)
     xbins (1D) = xmeshgrid[0]
     ybins (1D) = ymeshgrid[0]
-    w2s = weight**2 
     '''
 
     xmin = x_range[0]
@@ -171,12 +159,12 @@ def make_2D_hist(xvals, yvals, nx, ny, weights=[], x_range=[-1,-1], y_range=[-1,
     xmeshgrid, ymeshgrid = get_2DHist_axis(xmin, xmax, ymin, ymax, nx, ny)
 
     # convert sum(w2) to sigma
-    errors = np.sqrt(w2s)
+    #errors = np.sqrt(w2s)
 
     # calculate statistical errors
-    staterrs = np.sqrt(zval)
+    #staterrs = np.sqrt(zval)
    
-    return xmeshgrid, ymeshgrid, zval, errors, staterrs, xmeshgrid[:,0], ymeshgrid[0], w2s
+    return xmeshgrid, ymeshgrid, zval, w2s, xmeshgrid[:,0], ymeshgrid[0]
 
 
 #--------------------------------------------------------------------

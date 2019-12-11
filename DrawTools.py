@@ -213,15 +213,14 @@ class DrawDatum() :
     To set a histogram, use set_DrawDatum function.
     """
     def __init__(self) :
-        self.val = np.zeros(1)
-        self.xmeshgrid = np.zeros(1)
+        self.val = np.zeros(1)   # sum of weight per bin
+        self.xmeshgrid = np.zeros(1) 
         self.xbinedges = np.zeros(1)
         self.xbins = np.zeros(1)
         self.ymeshgrid = np.zeros(1)
         self.ybinedges = np.zeros(1)
         self.ybins = np.zeros(1)
-        self.err = np.zeros(1) # weighted err
-        self.staterr = np.zeros(1) # statistical err
+        self.w2s = np.zeros(1)   # sum of weight*weight per bin
         self.color = "red"
         self.linestyle = "-"
         self.title= "none"
@@ -231,6 +230,12 @@ class DrawDatum() :
         self.xnorm = 1
         self.xmean = 0
         self.xsigma = 1
+
+    def err(self) :
+        return np.sqrt(self.w2s)
+
+    def staterr(self) :
+        return np.sqrt(self.val)
 
     def fit_gauss_x(self) :
         param0 = (self.xnorm, self.xmean, self.xsigma)
@@ -249,8 +254,7 @@ class DrawDatum() :
         print "ymeshgrid", self.ymeshgrid
         print "ybinedges", self.ybinedges
         print "ybins", self.ybins
-        print "err", self.err
-        print "staterr", self.staterr
+        print "w2s", self.w2s
         print "color", self.color
         print "linestyle", self.linestyle
         print "title", self.title
@@ -296,7 +300,7 @@ def set_DrawDatum(xarray, key, nbins=100, weights=[], x_range=[-1, -1], xbins =[
     """
     datum = DrawDatum()
     datum.title = key
-    datum.val, bins, datum.err, datum.staterr = HT.make_1D_hist(xarray, nbins=nbins, weights=weights, x_range=x_range, xbins=xbins)
+    datum.val, bins, datum.w2s = HT.make_1D_hist(xarray, nbins=nbins, weights=weights, x_range=x_range, xbins=xbins)
     datum.xbinedges = bins
     datum.xbins = 0.5*(bins[1:]+bins[:-1])
     datum.color = color
@@ -345,7 +349,7 @@ def set_DrawDatum2D(xarray, yarray, key, nxbins, nybins, weights=[], x_range=[-1
     """
     datum = DrawDatum()
     datum.title = key
-    datum.xmeshgrid, datum.ymeshgrid, datum.val, datum.err, datum.staterr, xbins, ybins = HT.make_2D_hist(xarray, yarray, nxbins, nybins, weights=weights, x_range=x_range, y_range=y_range)
+    datum.xmeshgrid, datum.ymeshgrid, datum.val, datum.w2s, xbins, ybins = HT.make_2D_hist(xarray, yarray, nxbins, nybins, weights=weights, x_range=x_range, y_range=y_range)
 
     datum.xbinedges = datum.xmeshgrid[:,0]
     datum.xbins = 0.5*(datum.xbinedges[1:]+datum.xbinedges[:-1])
@@ -503,9 +507,9 @@ def draw_1D_errors(figid, data, axislabels=["x-label","y-label"], xscale='linear
     ax1 = plt.subplot(1,1,1)
     ax1.set_title(figtitle)
     if errtype == "weighted" :
-        ax1.errorbar(data.xmeshgrid, data.val, yerr=data.err, color=data.color, label=data.title, fmt=data.linestyle )
+        ax1.errorbar(data.xmeshgrid, data.val, yerr=data.err(), color=data.color, label=data.title, fmt=data.linestyle )
     else:
-        ax1.errorbar(data.xmeshgrid, data.val, yerr=data.staterr, color=data.color, label=data.title, fmt=data.linestyle )
+        ax1.errorbar(data.xmeshgrid, data.val, yerr=data.staterr(), color=data.color, label=data.title, fmt=data.linestyle )
     ax1.set_xscale(xscale)
     ax1.set_yscale(yscale)
     ax1.set_xlabel(axislabels[0])
@@ -600,9 +604,9 @@ def draw_1D_comparison(figid, data, basedata, xlabel, xscale='linear', yscale='l
         if (yrange2[1] > yrange[1]) :
             yrange[1] = yrange2[1]
         if errtype == 'weighted':
-            ax[0].errorbar(d.xbins, d.val, yerr=d.err, color=d.color, label=d.title, fmt=d.linestyle )
+            ax[0].errorbar(d.xbins, d.val, yerr=d.err(), color=d.color, label=d.title, fmt=d.linestyle )
         else :
-            ax[0].errorbar(d.xbins, d.val, yerr=d.staterr, color=d.color, label=d.title, fmt=d.linestyle )
+            ax[0].errorbar(d.xbins, d.val, yerr=d.staterr(), color=d.color, label=d.title, fmt=d.linestyle )
     ax[0].set_xscale(xscale)
     ax[0].set_yscale(yscale)
     ax[0].set_xlabel(xlabel)
@@ -615,9 +619,9 @@ def draw_1D_comparison(figid, data, basedata, xlabel, xscale='linear', yscale='l
 
     for d in data :
         if errtype == 'weighted':
-            ratio, sigma = MT.calc_divide_errors(d.val, d.err, basedata.val, basedata.err)
+            ratio, sigma = MT.calc_divide_errors(d.val, d.err(), basedata.val, basedata.err())
         else :
-            ratio, sigma = MT.calc_divide_errors(d.val, d.staterr, basedata.val, basedata.staterr)
+            ratio, sigma = MT.calc_divide_errors(d.val, d.staterr(), basedata.val, basedata.staterr())
         ratiolabel = d.title + "/" + basedata.title
         ax[1].errorbar(d.xbins, ratio, yerr=sigma, color=d.color, label=ratiolabel, fmt=d.linestyle )
     ax[1].set_xlabel(xlabel)
