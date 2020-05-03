@@ -62,6 +62,27 @@ def glob_filenames(tablelist) :
     return filenames
 
 #--------------------------------------------------
+def load_a_table(fname) :
+    """
+    loading all tables listed in the filelist
+
+    Parameters
+    ----------
+    fname: 
+        name of h5 file
+
+    Returns
+    ----------
+    tablelist : list
+        list of tables
+    """
+    tablelist = []
+    myt = tables.open_file(fname)
+    tablelist.append(myt)
+    return tablelist
+
+
+#--------------------------------------------------
 def load_tables(filelist) :
     """
     loading all tables listed in the filelist

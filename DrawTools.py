@@ -1,3 +1,8 @@
+"""
+Tools to draw figures with matplotlib
+
+"""
+
 import bisect
 import numpy as np
 import scipy.optimize
@@ -10,6 +15,7 @@ import matplotlib.pyplot as plt
 
 import MathTools as MT
 import HistTools as HT
+import Utils as UT
 
 #plt.style.use('presentation')
 
@@ -46,12 +52,11 @@ global_min = 1e-30
 
 
 def mkdir(dirname, overwrite=True) :
-    import os
-    import shutil
-    if overwrite and os.path.exists(dirname) : 
-        shutil.rmtree(dirname)
-    if not os.path.exists(dirname) :
-        os.makedirs(dirname)
+    """
+    wrapper function for backward compatibility
+    """
+    UT.mkdir(dirname, overwrite)
+
 
 def htmlheader(title, cutstring="") :
     """
@@ -587,7 +592,6 @@ def draw_1D_comparison(figid, data, basedata, xlabel, xscale='linear', yscale='l
     if yrange=='' :
         yrange = ymin_ymax(basedata.val, scale=yscale) 
 
-    ax = ""
     if figtype == "horizontal" :
         fig, ax = plt.subplots(1, 2, sharex=False)
     else :
@@ -615,7 +619,7 @@ def draw_1D_comparison(figid, data, basedata, xlabel, xscale='linear', yscale='l
     if grid != "None" :
         ax[0].grid(True, axis=grid)
 
-    ax[0].legend(loc="best", fontsize=global_legendfontsize)
+    ax[0].legend(loc="upper right", fontsize=global_legendfontsize)
 
     for d in data :
         if errtype == 'weighted':
@@ -633,6 +637,133 @@ def draw_1D_comparison(figid, data, basedata, xlabel, xscale='linear', yscale='l
     ax[1].legend(loc="upper left", fontsize=global_legendfontsize)
     return fig, ax[0], ax[1]
 
+def draw_1D_ratio(figid, data, basedata, xlabel, xscale='linear', yscale='log',figtitle="", yrange='', errtype='weighted', yrscale = 'linear', yrrange = [0.2, 2.0], figtype="horizontal", grid="None", figsize = (11,5)) :
+    """
+    Draw 1D histogram plot from DrawDatum objects
+    for two datasets
+    By default the error bars are weighted err, or set
+    errtype='std' for standard deviation err.
+    To get a reasonable ratio plot, you have to specify
+    same bins for data and basedata. Somehow giving bins parameter
+    to set_DrawDatum doesn't work as expected, for now, use x_range
+    parameter and nx to get same bins.
+
+    Parameters
+    ----------
+
+    figid : int
+        unique id for the figure
+
+    data : list 
+        list of DrawDatum you want to draw
+
+    basedata: list
+        ibase data to compare data
+
+    xlabel : string
+        label of x axis
+
+    xscale : string
+        x axis scale, will be set with set_xscale()
+
+    yscale : string
+        y axis scale, will be set with set_yscale()
+
+    figtitle : string
+        title of the figure
+
+    yrange : list or string
+        if empty string, it automatically calculate the best yrange.
+        to give yrange manually, set yrange=[ymin, ymax].
+
+    errtype : string
+        errtype = "weighted", error bar is calculated with weighted method (default)
+        errtype = "std", error bar is 1 sigma standard deviation of y value
+        errtype = "none", no error bar
+        
+    yrscale : string
+        y axis scale for ratio plot, will be set with set_yscale()
+
+    yrrange : list
+        y axis range for ratio plot
+
+    figtype : string
+        if "horizontal", plot and ratio plot is arrigned in horizontal.
+        else, plot and ratio plot is arrigned in vertical.
+
+    grid : string
+        "x"    set grid for x axis only
+        "y"    set grid for y axis only
+        "both" set grid for x and y
+        "None" no grid
+
+    Returns
+    -------
+    fig : figure object    
+    ax[0] : axis object for plot
+    ax[1] : axis object for ratio plot
+
+    """
+    fig = plt.figure(figid, figsize=figsize)
+    if yrange=='' :
+        yrange = ymin_ymax(basedata[0].val, scale=yscale) 
+
+    if figtype == "horizontal" :
+        fig, ax = plt.subplots(1, 2, sharex=False)
+    else :
+        fig, ax = plt.subplots(2, 1, sharex=True)
+        fig.subplots_adjust(hspace=0)
+
+    #print figtitle
+    ax[0].set_title(figtitle)
+    for i, d in enumerate(data) :
+        bd = basedata[i]
+        #print d.val
+        yrange2 = ymin_ymax(d.val, scale=yscale)
+        if (yrange2[0] < yrange[0]) :
+            yrange[0] = yrange2[0]
+        if (yrange2[1] > yrange[1]) :
+            yrange[1] = yrange2[1]
+        if errtype == 'weighted':
+            ax[0].errorbar(d.xbins, d.val, yerr=d.err(), color=d.color, label=d.title, fmt=d.linestyle )
+            ax[0].errorbar(bd.xbins, bd.val, yerr=bd.err(), color=bd.color, label=bd.title, fmt=bd.linestyle )
+        elif errtype == 'std' :
+            ax[0].errorbar(d.xbins, d.val, yerr=d.staterr(), color=d.color, label=d.title, fmt=d.linestyle )
+            ax[0].errorbar(bd.xbins, bd.val, yerr=bd.staterr(), color=bd.color, label=bd.title, fmt=bd.linestyle )
+        else :
+            ax[0].errorbar(d.xbins, d.val, color=d.color, label=d.title, fmt=d.linestyle )
+            ax[0].errorbar(bd.xbins, bd.val, color=bd.color, label=bd.title, fmt=bd.linestyle )
+
+    ax[0].set_xscale(xscale)
+    ax[0].set_yscale(yscale)
+    ax[0].set_xlabel(xlabel)
+    ax[0].set_ylim(yrange)
+
+    if grid != "None" :
+        ax[0].grid(True, axis=grid)
+
+    ax[0].legend(loc="upper right", fontsize=global_legendfontsize)
+
+    for i, d in enumerate(data) :
+        bd = basedata[i]
+        if errtype == 'std':
+            ratio, sigma = MT.calc_divide_errors(d.val, d.staterr(), bd.val, bd.staterr())
+        else :
+            ratio, sigma = MT.calc_divide_errors(d.val, d.err(), bd.val, bd.err())
+
+        ratiolabel = d.title + " ratio" 
+        if errtype == 'none' :
+            ax[1].errorbar(d.xbins, ratio, color=d.color, label=ratiolabel, fmt=d.linestyle )
+        else :
+            ax[1].errorbar(d.xbins, ratio, yerr=sigma, color=d.color, label=ratiolabel, fmt=d.linestyle )
+    ax[1].set_xlabel(xlabel)
+    ax[1].set_yscale(yrscale)
+    ax[1].set_ylim(yrrange)
+    if grid != "None" :
+        ax[1].grid(True, axis=grid)
+
+    ax[1].legend(loc="upper left", fontsize=global_legendfontsize)
+    return fig, ax[0], ax[1]
 
 def draw_2D(figid, data, axislabels, norm=colors.LogNorm(), figtitle="", vmin=0, vmax=0) :
     # to make linear color set norm=colors.Normalize()
@@ -674,6 +805,28 @@ def draw_2D_comparison(figid, data, basedata, axislabels, figtitle="", vrange=(0
     plt.legend(loc="best", fontsize=global_legendfontsize)
     plt.colorbar(phist2)
     plt.subplots_adjust(hspace=0.2, wspace=0.5)
+
+def draw_2D_effective_livetime_scale(figid, data, axislabels, norm=colors.LogNorm(), figtitle="", vmin=0, vmax=0) :
+    # to make linear color set norm=colors.Normalize()
+    # to make log color set norm=colors.LogNorm()
+    fig = plt.figure(figid)
+    ax1 = plt.subplot(1,1,1)
+
+    eff_livetime_scale = data.val / data.w2s
+
+    if vmin == vmax :
+        phist = ax1.pcolormesh(data.xmeshgrid, data.ymeshgrid, eff_livetime_scale, norm=norm)
+    else:
+        phist = ax1.pcolormesh(data.xmeshgrid, data.ymeshgrid, eff_livetime_scale, norm=norm, vmin=vmin, vmax=vmax)
+
+    ax1.set_title(figtitle)
+    ax1.set_xlabel(axislabels[0])
+    ax1.set_ylabel(axislabels[1])
+
+    plt.colorbar(phist)
+    global global_legendfontsize
+    plt.legend(loc="best", fontsize=global_legendfontsize)
+
  
 def draw_2D_basic(ax, x, y, w, xlabel, ylabel, title, yscale="linear", xscale="linear", vmin=0, vmax=0) :
     c1 = ax.pcolormesh(x, y, w)
