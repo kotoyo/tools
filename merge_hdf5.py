@@ -255,14 +255,21 @@ def read_tables(tablelist, nodename, leafname) :
         filenames = glob_filenames(tablelist) 
         for i, fname in enumerate(filenames):
             #print("open file %s" % (fname))
+            if fname[0] == "#" :
+                continue
             myt = tables.open_file(fname)
+            filesize = myt.get_filesize()
+            if filesize < 2800 :
+                # this is empty file. skip it.
+                continue
+
             if isinstance(buf, str) :
                 buf = myt.get_node(nodename).col(leafname)
                 
             else :
                 buf = np.hstack((buf, myt.get_node(nodename).col(leafname)))
 
-            myt.close()
+            #myt.close()
 
     else :
         '''
@@ -272,12 +279,17 @@ def read_tables(tablelist, nodename, leafname) :
         '''
         for i, t in enumerate(tablelist):
             #print i, t
+            filesize = tablelist[i].get_filesize()
+            if filesize < 2800 :
+                # this is empty file. skip it.
+                continue
+     
             if i == 0 :
                 buf=tablelist[i].get_node(nodename).col(leafname)
             else :
                 buf = np.hstack((buf, tablelist[i].get_node(nodename).col(leafname)))
 
-    print nodename, leafname, buf.shape
+    #print nodename, leafname, buf.shape
     return buf
 
 #--------------------------------------------------

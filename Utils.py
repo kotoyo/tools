@@ -7,8 +7,8 @@ import os
 import shutil
 import numpy as np
 
-def mkdir(dirname, overwrite=False) :
-    if overwrite and os.path.exists(dirname) : 
+def mkdir(dirname, recreate=False) :
+    if recreate and os.path.exists(dirname) : 
         shutil.rmtree(dirname)
     if not os.path.exists(dirname) :
         os.makedirs(dirname)

@@ -1,5 +1,7 @@
 from enum import Enum
 import numpy as np
+
+Na = 6.02214076e+23 # mol-1, 20190520  
  
 #-------------------------------------------------
 class ParticleType(Enum) :

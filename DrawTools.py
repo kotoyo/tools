@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 
 import MathTools as MT
 import HistTools as HT
+import PhysTools as PT
 import Utils as UT
 
 #plt.style.use('presentation')
@@ -252,20 +253,20 @@ class DrawDatum() :
 
     def printdatum(self) :
 
-        print "val", self.val
-        print "xmeshgrid", self.xmeshgrid
-        print "xbinedges", self.xbinedges
-        print "xbins", self.xbins
-        print "ymeshgrid", self.ymeshgrid
-        print "ybinedges", self.ybinedges
-        print "ybins", self.ybins
-        print "w2s", self.w2s
-        print "color", self.color
-        print "linestyle", self.linestyle
-        print "title", self.title
-        print "xnorm", self.xnorm
-        print "xmean", self.xmean
-        print "xsigma", self.xsigma
+        print("val", self.val)
+        print("xmeshgrid", self.xmeshgrid)
+        print("xbinedges", self.xbinedges)
+        print("xbins", self.xbins)
+        print("ymeshgrid", self.ymeshgrid)
+        print("ybinedges", self.ybinedges)
+        print("ybins", self.ybins)
+        print("w2s", self.w2s)
+        print("color", self.color)
+        print("linestyle", self.linestyle)
+        print("title", self.title)
+        print("xnorm", self.xnorm)
+        print("xmean", self.xmean)
+        print("xsigma", self.xsigma)
 
 def set_DrawDatum(xarray, key, nbins=100, weights=[], x_range=[-1, -1], xbins =[], color="black", linestyle="-") :
     """
@@ -751,7 +752,7 @@ def draw_1D_ratio(figid, data, basedata, xlabel, xscale='linear', yscale='log',f
         else :
             ratio, sigma = MT.calc_divide_errors(d.val, d.err(), bd.val, bd.err())
 
-        ratiolabel = d.title + " ratio" 
+        ratiolabel = d.title + "/" + bd.title 
         if errtype == 'none' :
             ax[1].errorbar(d.xbins, ratio, color=d.color, label=ratiolabel, fmt=d.linestyle )
         else :
@@ -838,5 +839,49 @@ def draw_2D_basic(ax, x, y, w, xlabel, ylabel, title, yscale="linear", xscale="l
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
     ax.set_title(title)
+
+def draw_2D_labeled(fig, ax1, xbinedges, ybinedges, counts, title, xlabel, ylabel, vmin, vmax) :
+    yy, xx = np.meshgrid(ybinedges, xbinedges)
+    xbincenter = 0.5* (xbinedges[:-1] + xbinedges[1:])
+    ybincenter = 0.5* (ybinedges[:-1] + ybinedges[1:])
+    ax1.set_title(title)
+    ax1.set_ylabel(ylabel)
+    ax1.set_xlabel(xlabel)
+    c1 = ax1.pcolormesh(xx, yy, counts, norm=colors.Normalize(vmin=vmin, vmax=vmax))
+    for i, x in enumerate(xbincenter) :
+        for j, y in enumerate(ybincenter) :
+            text = ax1.text(x, y, "%.2f"%(counts[i, j]),
+                       ha="center", va="center", color="w", size=7)
+    cb = fig.colorbar(c1, ax=ax1, norm=colors.Normalize(vmin=vmin, vmax=vmax))
+    cb.set_clim(vmin,vmax)
+
+
+def draw_EffectiveArea(figid, truecoszens, truelog10es, onew, ngenevts, coszenbins, elogbins, yrange=(1e-3, 1e3)) :
+
+    plt.figure(figid)
+    ax1 = plt.subplot(1,1,1)
+
+    effall, bins, w2s = PT.FastEffectiveArea(truecoszens, truelog10es, ngenevts, onew, coszenbins[0], coszenbins[-1], elogbins)
+
+    ax1.step(elogbins[:-1], effall, color="black", label="all")
+    global colors_10
+
+    effs = []
+    for i in range(len(coszenbins)-1) :
+        mincz = coszenbins[i]
+        maxcz = coszenbins[i+1]
+        eff, bins, w2s = PT.FastEffectiveArea(truecoszens, truelog10es, ngenevts, onew, mincz, maxcz, elogbins)
+        ax1.step(elogbins[:-1], eff, color=colors_10[i], label="%.2f < coszen < %.2f"%(mincz, maxcz))
+    ax1.set_ylabel("m2")
+    ax1.set_yscale("log")
+    ax1.set_xlabel("log10(energy)")
+    ax1.set_ylim(yrange)
+    ax1.set_title("effective area")
+    ax1.grid(True, axis="both")
+    plt.legend(loc="best")
+
+
+        
+        
 
 
