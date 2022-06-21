@@ -52,7 +52,7 @@ def glob_filenames(tablelist) :
         for i, fname in enumerate(flist):
             if fname.count("#") :
                 continue
-            print fname
+            print(fname)
             filenames.append(fname.strip())
         flist.close()
 
@@ -105,7 +105,7 @@ def load_tables(filelist) :
         myt = tables.open_file(fname)
         tablelist.append(myt)
 
-    print "tablelist %s is successfully loaded" % (filelist)
+    print("tablelist %s is successfully loaded" % (filelist))
     return tablelist
 
 #--------------------------------------------------
@@ -120,7 +120,7 @@ def close_tables(tablelist) :
 
     for myt in tablelist :
         myt.close()
-    print "tablelist %s is successfully closed" % (tablelist)
+    print("tablelist %s is successfully closed" % (tablelist))
 
 #--------------------------------------------------
 def check_tables(tablelist, nodename, leafname) :
@@ -347,7 +347,7 @@ def read_pickles(tablelist, leafname) :
             else :
                 buf = np.hstack((buf, tablelist[i][leafname]))
 
-    print leafname, buf.shape
+    print(leafname, buf.shape)
     return buf
 
 
