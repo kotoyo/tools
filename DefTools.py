@@ -54,7 +54,7 @@ def GetI3ParticleType(pdg) :
     elif pdg == -2000001006 :
         return dataclasses.I3Particle.Hadron
     else :
-        print "Particletype ", pdg, " doens't found"
+        print("Particletype ", pdg, " doens't found")
 
 #-------------------------------------------------
 def IsNu(pdgcode) :

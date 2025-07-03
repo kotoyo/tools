@@ -193,6 +193,7 @@ def ymin_ymax(yvals, scale="") :
     global global_min
     ymax = max(yvals.tolist())
     ymin = min(yvals.tolist()) 
+    print("ymin ", ymin, "ymax ", ymax)
 
     if scale == "log":
         ymax *= 10
@@ -315,8 +316,17 @@ def set_DrawDatum(xarray, key, nbins=100, weights=[], x_range=[-1, -1], xbins =[
         datum.xmean = float(sum(xarray))/len(xarray)
     else :
         datum.xmean = sum(xarray*weights)/sum(weights)
+
     return datum
 
+def write_DrawDatum(datum, outfname) :
+    data = []
+    data.append(datum.xbins)
+    data.append(datum.val)
+    data.append(datum.err())
+
+    dataarray = np.array(data)
+    np.savetxt(outfname,dataarray)
 
 def set_DrawDatum2D(xarray, yarray, key, nxbins, nybins, weights=[], x_range=[-1,-1], y_range=[-1,-1]) :
     """
@@ -629,6 +639,7 @@ def draw_1D_comparison(figid, data, basedata, xlabel, xscale='linear', yscale='l
             ratio, sigma = MT.calc_divide_errors(d.val, d.staterr(), basedata.val, basedata.staterr())
         ratiolabel = d.title + "/" + basedata.title
         ax[1].errorbar(d.xbins, ratio, yerr=sigma, color=d.color, label=ratiolabel, fmt=d.linestyle )
+        print("average ratio for %s is %f"%(ratiolabel, np.average(ratio)))
     ax[1].set_xlabel(xlabel)
     ax[1].set_yscale(yrscale)
     ax[1].set_ylim(yrrange)
@@ -636,6 +647,9 @@ def draw_1D_comparison(figid, data, basedata, xlabel, xscale='linear', yscale='l
         ax[1].grid(True, axis=grid)
 
     ax[1].legend(loc="upper left", fontsize=global_legendfontsize)
+
+
+
     return fig, ax[0], ax[1]
 
 def draw_1D_ratio(figid, data, basedata, xlabel, xscale='linear', yscale='log',figtitle="", yrange='', errtype='weighted', yrscale = 'linear', yrrange = [0.2, 2.0], figtype="horizontal", grid="None", figsize = (11,5)) :
@@ -787,24 +801,32 @@ def draw_2D(figid, data, axislabels, norm=colors.LogNorm(), figtitle="", vmin=0,
 
 
 def draw_2D_comparison(figid, data, basedata, axislabels, figtitle="", vrange=(0,0), rvrange=(0,2.0)) :
-    fig = plt.figure(figid, figsize=(10,4))
-    ax1 = plt.subplot(1,2,1)
+    fig = plt.figure(figid, figsize=(15,4))
+    ax1 = plt.subplot(1,3,1)
     phist1 = ax1.pcolormesh(data.xmeshgrid, data.ymeshgrid, data.val)
     ax1.set_xlabel(axislabels[0])
     ax1.set_ylabel(axislabels[1])
-    ax1.set_title(figtitle)
+    ax1.set_title("%s_%s"%(figtitle,data.title))
     plt.legend(loc="best", fontsize=global_legendfontsize)
     plt.colorbar(phist1)
 
-    ax2 = plt.subplot(1,2,2)
-    ratio = data.val / basedata.val
-    ratiolabel = data.title + "/" + basedata.title
-    phist2 = ax2.pcolormesh(data.xmeshgrid, data.ymeshgrid, ratio, vmin=rvrange[0], vmax=rvrange[1])
+    ax2 = plt.subplot(1,3,2)
+    phist2 = ax2.pcolormesh(basedata.xmeshgrid, basedata.ymeshgrid, basedata.val)
     ax2.set_xlabel(axislabels[0])
     ax2.set_ylabel(axislabels[1])
-    ax2.set_title(ratiolabel)
+    ax2.set_title("%s_%s"%(figtitle,basedata.title))
     plt.legend(loc="best", fontsize=global_legendfontsize)
     plt.colorbar(phist2)
+
+    ax3 = plt.subplot(1,3,3)
+    ratio = data.val / basedata.val
+    ratiolabel = data.title + "/" + basedata.title
+    phist3 = ax3.pcolormesh(data.xmeshgrid, data.ymeshgrid, ratio, vmin=rvrange[0], vmax=rvrange[1])
+    ax3.set_xlabel(axislabels[0])
+    ax3.set_ylabel(axislabels[1])
+    ax3.set_title(ratiolabel)
+    plt.legend(loc="best", fontsize=global_legendfontsize)
+    plt.colorbar(phist3)
     plt.subplots_adjust(hspace=0.2, wspace=0.5)
 
 def draw_2D_effective_livetime_scale(figid, data, axislabels, norm=colors.LogNorm(), figtitle="", vmin=0, vmax=0) :
